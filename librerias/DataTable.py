@@ -1,6 +1,9 @@
 # Tabla tabular propia de DataDSL.
 
 import csv
+import re
+import zipfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
@@ -24,6 +27,47 @@ class TablaDatos:
             for fila in lector:
                 filas.append({k: _convertir_celda(v) for k, v in fila.items()})
         return cls(columnas, filas)
+
+    @classmethod
+    def desde_xlsx(cls, ruta):
+        # Lee la primera hoja de un XLSX sin librerias externas.
+        ruta = Path(str(ruta))
+        if not ruta.exists():
+            raise FileNotFoundError(str(ruta))
+
+        with zipfile.ZipFile(ruta, "r") as archivo:
+            compartidas = _leer_cadenas_xlsx(archivo)
+            hoja = _ruta_primera_hoja(archivo)
+            raiz = ET.fromstring(archivo.read(hoja))
+            ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+
+            filas_crudas = []
+            for fila_xml in raiz.findall(f".//{ns}sheetData/{ns}row"):
+                valores = {}
+                for celda in fila_xml.findall(f"{ns}c"):
+                    referencia = celda.attrib.get("r", "A1")
+                    indice = _indice_columna_xlsx(referencia)
+                    valores[indice] = _valor_celda_xlsx(celda, compartidas, ns)
+                if valores:
+                    maximo = max(valores)
+                    filas_crudas.append([valores.get(i) for i in range(maximo + 1)])
+
+        if not filas_crudas:
+            return cls([], [])
+
+        columnas = [
+            str(valor) if valor not in (None, "") else f"columna_{i + 1}"
+            for i, valor in enumerate(filas_crudas[0])
+        ]
+        filas = []
+        for valores in filas_crudas[1:]:
+            valores = valores + [None] * (len(columnas) - len(valores))
+            filas.append({
+                columna: _convertir_celda(valores[i])
+                for i, columna in enumerate(columnas)
+            })
+        return cls(columnas, filas)
+
 
     def a_csv(self, ruta, separador=","):
         # Guarda la tabla como CSV.
@@ -226,6 +270,70 @@ class AgrupacionDatos:
     def items(self):
         # Recorre clave y filas.
         return self.grupos.items()
+
+
+def _ruta_primera_hoja(archivo):
+    # Busca la primera hoja dentro del XLSX.
+    workbook = ET.fromstring(archivo.read("xl/workbook.xml"))
+    ns_main = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+    ns_rel = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
+    hoja = workbook.find(f".//{ns_main}sheet")
+    if hoja is None:
+        raise ValueError("El XLSX no contiene hojas.")
+    relacion = hoja.attrib.get(f"{ns_rel}id")
+
+    rels = ET.fromstring(archivo.read("xl/_rels/workbook.xml.rels"))
+    for item in rels:
+        if item.attrib.get("Id") == relacion:
+            objetivo = item.attrib["Target"].lstrip("/")
+            if objetivo.startswith("xl/"):
+                return objetivo
+            return "xl/" + objetivo
+    return "xl/worksheets/sheet1.xml"
+
+
+def _leer_cadenas_xlsx(archivo):
+    # Lee textos compartidos del XLSX.
+    if "xl/sharedStrings.xml" not in archivo.namelist():
+        return []
+    raiz = ET.fromstring(archivo.read("xl/sharedStrings.xml"))
+    ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+    cadenas = []
+    for item in raiz.findall(f"{ns}si"):
+        partes = [nodo.text or "" for nodo in item.iter(f"{ns}t")]
+        cadenas.append("".join(partes))
+    return cadenas
+
+
+def _indice_columna_xlsx(referencia):
+    # Convierte A, B, AA en indices numericos.
+    letras = re.match(r"[A-Z]+", referencia.upper())
+    texto = letras.group(0) if letras else "A"
+    indice = 0
+    for letra in texto:
+        indice = indice * 26 + (ord(letra) - ord("A") + 1)
+    return indice - 1
+
+
+def _valor_celda_xlsx(celda, compartidas, ns):
+    # Convierte una celda XML en un valor Python.
+    tipo = celda.attrib.get("t")
+    if tipo == "inlineStr":
+        partes = [nodo.text or "" for nodo in celda.iter(f"{ns}t")]
+        return "".join(partes)
+
+    nodo = celda.find(f"{ns}v")
+    if nodo is None or nodo.text is None:
+        return None
+    texto = nodo.text
+
+    if tipo == "s":
+        return compartidas[int(texto)]
+    if tipo == "b":
+        return texto == "1"
+    if tipo in {"str", "e"}:
+        return texto
+    return _convertir_celda(texto)
 
 
 def _convertir_celda(valor):
