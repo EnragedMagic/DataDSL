@@ -1,13 +1,12 @@
-# PROGRAMA 2
-# Objetivo:
-# Crear una columna calculada y tratar valores faltantes.
-
+# Limpia y transforma datos.
 datos := abrir "datos/ventas.csv";
 
-ventas_preparadas := datos
+resultado := datos
 -> rellenar precio con 0
 -> eliminar_nulos [cantidad]
+-> eliminar_duplicados
 -> crear total := cantidad * precio
+-> convertir cantidad a entero
 -> ordenar por total desc;
 
-guardar ventas_preparadas como "salidas/ventas_preparadas.csv";
+guardar resultado como "salidas/ventas_preparadas.csv";

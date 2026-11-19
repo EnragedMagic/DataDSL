@@ -1,0 +1,14 @@
+# Dentro de DataDSL_Final_v2
+
+git init
+git add .
+git commit -m "DataDSL version final"
+git branch -M main
+git remote add origin URL_DE_TU_REPOSITORIO
+git push -u origin main
+
+# Si el repositorio ya existe:
+git status
+git add .
+git commit -m "Actualiza DataDSL final"
+git push

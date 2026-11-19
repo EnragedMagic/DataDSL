@@ -1,109 +1,72 @@
-# ======================================================
-# CONTEXTO DE EJECUCION / TABLA DE SIMBOLOS
-# ======================================================
-#
-# Este archivo administra las variables creadas
-# durante la ejecucion de un programa DataDSL.
-#
-# Ejemplo:
-#
-# datos := abrir "datos/ventas.csv";
-#
-# Internamente se guarda algo equivalente a:
-#
-# "datos" -> DataFrame
-#
-# La tabla de simbolos permite:
-#
-# - Guardar variables.
-# - Consultar variables.
-# - Verificar si una variable existe.
-# - Evitar usar variables no declaradas.
-#
-# En resumen:
-# este archivo funciona como la memoria del programa.
-# ======================================================
+# Tabla de simbolos de DataDSL.
+
+from src.ErroresSemanticos import VariableNoDefinidaError
 
 
 class ContextoEjecucion:
-
     def __init__(self):
+        # Pila de ambitos y tipos.
+        self.ambitos = [{}]
+        self.tipos = [{}]
+        self.funciones = {}
 
-        # Diccionario que funciona como tabla de simbolos.
-        #
-        # Clave:
-        # nombre de la variable escrita en DataDSL.
-        #
-        # Valor:
-        # objeto real asociado a esa variable.
-        #
-        # Ejemplo:
-        #
-        # {
-        #     "datos": DataFrame(...),
-        #     "ventas": DataFrame(...),
-        #     "resumen": DataFrame(...)
-        # }
+    def entrar_ambito(self, inicial=None):
+        # Crea memoria local.
+        self.ambitos.append(dict(inicial or {}))
+        self.tipos.append({})
 
-        self.simbolos = {}
+    def salir_ambito(self):
+        # Cierra memoria local.
+        if len(self.ambitos) == 1:
+            raise RuntimeError("No se puede cerrar el ambito global.")
+        self.ambitos.pop()
+        self.tipos.pop()
 
-
-    def guardar(self, nombre, valor):
-        """
-        Guarda una variable dentro de la tabla de simbolos.
-
-        nombre:
-        nombre utilizado dentro del programa DataDSL.
-
-        valor:
-        objeto real asociado a esa variable.
-        """
-
-        self.simbolos[nombre] = valor
-
+    def guardar(self, nombre, valor, tipo=None):
+        # Actualiza la variable visible.
+        for indice in range(len(self.ambitos) - 1, -1, -1):
+            if nombre in self.ambitos[indice]:
+                self.ambitos[indice][nombre] = valor
+                if tipo:
+                    self.tipos[indice][nombre] = tipo
+                return valor
+        self.ambitos[-1][nombre] = valor
+        if tipo:
+            self.tipos[-1][nombre] = tipo
+        return valor
 
     def obtener(self, nombre):
-        """
-        Recupera el valor asociado a una variable.
-
-        Si la variable no existe se genera un error,
-        porque no se puede utilizar una variable
-        que nunca fue declarada.
-        """
-
-        if nombre not in self.simbolos:
-
-            raise Exception(
-                f"Error semantico: "
-                f"la variable '{nombre}' no existe."
-            )
-
-        return self.simbolos[nombre]
-
+        # Busca una variable visible.
+        for ambito in reversed(self.ambitos):
+            if nombre in ambito:
+                return ambito[nombre]
+        raise VariableNoDefinidaError(nombre)
 
     def existe(self, nombre):
-        """
-        Comprueba si una variable existe.
+        # Comprueba si existe.
+        return any(nombre in ambito for ambito in self.ambitos)
 
-        Devuelve:
+    def obtener_tipo(self, nombre):
+        # Busca el tipo declarado.
+        for tipos in reversed(self.tipos):
+            if nombre in tipos:
+                return tipos[nombre]
+        return None
 
-        True  -> la variable existe.
-        False -> la variable no existe.
-        """
+    def guardar_funcion(self, nombre, parametros, bloque):
+        # Registra una funcion del DSL.
+        self.funciones[nombre] = {
+            "parametros": list(parametros),
+            "bloque": bloque,
+        }
 
-        return nombre in self.simbolos
-
+    def obtener_funcion(self, nombre):
+        # Recupera una funcion.
+        return self.funciones.get(nombre)
 
     def mostrar_simbolos(self):
-        """
-        Devuelve una lista con los nombres
-        de todas las variables almacenadas.
-
-        Puede utilizarse para depuracion
-        o para mostrar la tabla de simbolos
-        durante la sustentacion.
-        """
-
-        return list(
-            self.simbolos.keys()
-        )
+        # Une simbolos visibles.
+        resultado = {}
+        for ambito in self.ambitos:
+            resultado.update(ambito)
+        return resultado

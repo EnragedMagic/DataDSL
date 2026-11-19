@@ -1,0 +1,4 @@
+# ANTLR es obligatorio por el proyecto.
+antlr4-python3-runtime==4.9.2
+# Matplotlib solo renderiza y exporta PNG.
+matplotlib>=3.7

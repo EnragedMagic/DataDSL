@@ -1,78 +1,60 @@
 grammar DataDSL;
 
-// ======================================================
-// GRAMATICA - SINTAXIS - RECONOCIMIENTO
-// Este archivo define la gramatica de DataDSL usando ANTLR4
-// Sirve para indicar que estructuras son validas dentro del lenguaje
-// ANTLR usa esa gramatica para generar el lexer y el parser, y luego el visitor interpreta 
-// El arbol generado para ejecutar las operaciones sobre los datos
-// ======================================================
-
-
-// Un programa puede contener cero o mas instrucciones.
-// EOF significa que ANTLR debe llegar correctamente
-// hasta el final del archivo.
+// Programa completo.
 programa
-    : instruccion* EOF
+    : sentencia* EOF
     ;
 
-
-// Cada instruccion termina con punto y coma.
-instruccion
-    : asignacion FIN
+// Sentencias disponibles.
+sentencia
+    : declaracion FIN
+    | asignacion FIN
+    | imprimir FIN
     | guardado FIN
     | visualizacion FIN
+    | siStmt
+    | mientrasStmt
+    | paraStmt
+    | funcionDecl
+    | retorno FIN
+    | expr FIN
     ;
 
+// Variable con tipo.
+declaracion
+    : tipo ID ASIGNAR expr
+    ;
 
-// Una asignacion guarda un resultado dentro de una variable.
-//
-// Ejemplo:
-// datos := abrir "ventas.csv";
-//
-// Ejemplo:
-// ventas := datos -> tomar [ciudad, precio];
+// Tipos principales.
+tipo
+    : NUMERO_T
+    | ENTERO_T
+    | DECIMAL_T
+    | TEXTO_T
+    | LOGICO_T
+    | LISTA_T
+    | MATRIZ_T
+    ;
+
+// Asignacion normal o tabular.
 asignacion
-    : ID ASIGNAR contenido
+    : ID ASIGNAR lectura
+    | ID ASIGNAR flujo
+    | ID ASIGNAR expr
+    | ID CORCHETE_IZQ expr CORCHETE_DER ASIGNAR expr
     ;
 
-
-// El contenido de una variable puede venir de:
-// 1. La lectura de un CSV.
-// 2. Un flujo de transformaciones.
-// 3. Una expresion.
-contenido
-    : lectura
-    | flujo
-    | expresion
-    ;
-
-
-// Permite cargar un archivo CSV.
-//
-// Ejemplo:
-// datos := abrir "datos/ventas.csv";
+// Carga un CSV.
 lectura
     : ABRIR STRING
     ;
 
-
-// Un flujo comienza con una variable existente
-// y aplica una o mas operaciones usando ->
-//
-// Ejemplo:
-// ventas := datos
-// -> tomar [ciudad, precio]
-// -> cuando precio > 100;
+// Pipeline de datos.
 flujo
     : ID paso+
     ;
 
-
-// Cada "paso" representa una transformacion
-// que se aplicara sobre un conjunto de datos.
-//
-// Estas son las operaciones principales del segundo corte.
+// Transformaciones del pipeline.
 paso
     : FLECHA seleccion
     | FLECHA filtro
@@ -80,485 +62,296 @@ paso
     | FLECHA columnaCalculada
     | FLECHA rellenarNulos
     | FLECHA eliminarNulos
+    | FLECHA eliminarDuplicados
+    | FLECHA renombrarColumna
+    | FLECHA convertirTipo
     | FLECHA agrupacion
     | FLECHA resumen
     ;
 
-
-// ======================================================
-// OPERACIONES SOBRE LOS DATOS
-// ======================================================
-
-
-// Selecciona un grupo de columnas.
-//
-// Ejemplo:
-// -> tomar [ciudad, producto, precio]
+// Selecciona columnas.
 seleccion
     : TOMAR CORCHETE_IZQ columnas CORCHETE_DER
     ;
 
-
-// Lista de una o varias columnas separadas por coma.
-//
-// Ejemplo:
-// ciudad, producto, precio
+// Lista de columnas.
 columnas
     : ID (COMA ID)*
     ;
 
-
-// Filtra registros utilizando una expresion.
-//
-// Ejemplo:
-// -> cuando precio > 100
-//
-// Ejemplo:
-// -> cuando precio > 100 y cantidad > 0
+// Filtra filas.
 filtro
-    : CUANDO expresion
+    : CUANDO expr
     ;
 
-
-// Ordena los registros usando una columna.
-//
-// Ejemplo:
-// -> ordenar por precio
-//
-// Tambien puede indicarse el sentido:
-//
-// -> ordenar por precio asc
-// -> ordenar por precio desc
+// Ordena una columna.
 ordenamiento
     : ORDENAR POR ID (ASC | DESC)?
     ;
 
-
-// Permite crear una nueva columna calculada.
-//
-// Ejemplo:
-// -> crear total := cantidad * precio
+// Crea una columna.
 columnaCalculada
-    : CREAR ID ASIGNAR expresion
+    : CREAR ID ASIGNAR expr
     ;
 
-
-// Permite reemplazar valores faltantes de una columna.
-//
-// Ejemplo:
-// -> rellenar precio con 0
+// Rellena valores nulos.
 rellenarNulos
-    : RELLENAR ID CON expresion
+    : RELLENAR ID CON expr
     ;
 
-
-// Permite eliminar filas que tengan valores faltantes
-// en una o varias columnas.
-//
-// Ejemplo:
-// -> eliminar_nulos [precio, cantidad]
+// Elimina filas con nulos.
 eliminarNulos
     : ELIMINAR_NULOS CORCHETE_IZQ columnas CORCHETE_DER
     ;
 
+// Elimina filas repetidas.
+eliminarDuplicados
+    : ELIMINAR_DUPLICADOS
+    ;
 
-// Agrupa los datos por una o varias columnas.
-//
-// Ejemplo:
-// -> agrupar por [ciudad]
+// Renombra una columna.
+renombrarColumna
+    : RENOMBRAR ID COMO ID
+    ;
+
+// Convierte tipos de columna.
+convertirTipo
+    : CONVERTIR ID A (NUMERO_T | ENTERO_T | DECIMAL_T | TEXTO_T | LOGICO_T)
+    ;
+
+// Agrupa por columnas.
 agrupacion
     : AGRUPAR POR CORCHETE_IZQ columnas CORCHETE_DER
     ;
 
-
-// "resumir" define una o varias estadisticas
-// que se calcularan sobre los datos.
-//
-// Ejemplo:
-// -> resumir ingreso := suma(total),
-//            promedio := media(total),
-//            registros := contar()
+// Resume grupos.
 resumen
     : RESUMIR agregacion (COMA agregacion)*
     ;
 
-
-// Una agregacion guarda el resultado de una funcion
-// estadistica con un nombre.
-//
-// Ejemplo:
-// ingreso := suma(total)
+// Define una agregacion.
 agregacion
-    : ID ASIGNAR funcionAgregacion
+    : ID ASIGNAR ID PAREN_IZQ ID? PAREN_DER
     ;
 
-
-// Funciones disponibles para resumir datos.
-//
-// Algunas necesitan una columna:
-// suma(total)
-// media(precio)
-//
-// contar() no necesita columna.
-funcionAgregacion
-    : SUMA PAREN_IZQ ID PAREN_DER
-    | MEDIA PAREN_IZQ ID PAREN_DER
-    | MEDIANA PAREN_IZQ ID PAREN_DER
-    | MINIMO PAREN_IZQ ID PAREN_DER
-    | MAXIMO PAREN_IZQ ID PAREN_DER
-    | DESVIACION PAREN_IZQ ID PAREN_DER
-    | CONTAR PAREN_IZQ PAREN_DER
+// Imprime una expresion.
+imprimir
+    : IMPRIMIR expr
     ;
 
-
-// Guarda un conjunto de datos en un archivo CSV.
-//
-// Ejemplo:
-// guardar resumen como "salidas/resumen.csv";
+// Guarda una tabla CSV.
 guardado
     : GUARDAR ID COMO STRING
     ;
 
-
-// La visualizacion continua siendo reconocida.
-// La implementacion completa de graficas corresponde
-// principalmente al tercer corte.
-//
-// Ejemplo:
-// mostrar barras de resumen;
+// Genera una grafica PNG.
 visualizacion
-    : MOSTRAR BARRAS DE ID
+    : GRAFICAR TIPO_GRAFICA DE ID
+      (EJE_X ID)?
+      (EJE_Y ID)?
+      (TITULO STRING)?
+      COMO STRING
     ;
 
-
-// ======================================================
-// EXPRESIONES
-// ======================================================
-
-
-// Punto de entrada para las expresiones.
-expresion
-    : expresionLogica
+// Condicional.
+siStmt
+    : SI PAREN_IZQ expr PAREN_DER bloque (SINO bloque)?
     ;
 
-
-// Permite operadores logicos.
-//
-// Ejemplo:
-// precio > 100 y cantidad > 0
-expresionLogica
-    : comparacion ((Y | O) comparacion)*
+// Ciclo mientras.
+mientrasStmt
+    : MIENTRAS PAREN_IZQ expr PAREN_DER bloque
     ;
 
+// Ciclo para inclusivo.
+paraStmt
+    : PARA ID DESDE expr HASTA expr (PASO expr)? bloque
+    ;
 
-// Permite comparaciones.
-//
-// Ejemplos:
-// precio > 100
-// ciudad == "Bogota"
+// Funcion del lenguaje.
+funcionDecl
+    : FUNCION ID PAREN_IZQ parametros? PAREN_DER bloque
+    ;
+
+// Parametros de funcion.
+parametros
+    : ID (COMA ID)*
+    ;
+
+// Retorno de funcion.
+retorno
+    : RETORNAR expr
+    ;
+
+// Bloque de sentencias.
+bloque
+    : LLAVE_IZQ sentencia* LLAVE_DER
+    ;
+
+// Expresion general.
+expr
+    : logicaO
+    ;
+
+// Operador OR.
+logicaO
+    : logicaY (O logicaY)*
+    ;
+
+// Operador AND.
+logicaY
+    : igualdad (Y igualdad)*
+    ;
+
+// Igualdad y diferencia.
+igualdad
+    : comparacion ((IGUAL | DIFERENTE) comparacion)*
+    ;
+
+// Comparadores.
 comparacion
-    : suma ((MAYOR
-           | MENOR
-           | MAYOR_IGUAL
-           | MENOR_IGUAL
-           | IGUAL
-           | DIFERENTE) suma)?
+    : suma ((MAYOR | MENOR | MAYOR_IGUAL | MENOR_IGUAL) suma)*
     ;
-
 
 // Suma y resta.
-//
-// Ejemplo:
-// precio + impuesto
 suma
     : producto ((MAS | MENOS) producto)*
     ;
 
-
-// Multiplicacion, division y modulo.
-//
-// Ejemplo:
-// cantidad * precio
+// Producto, division y modulo.
 producto
-    : potencia ((MULTIPLICAR | DIVIDIR | MODULO) potencia)*
+    : potencia ((MULT | DIV | MOD) potencia)*
     ;
-
 
 // Potencia.
-//
-// Ejemplo:
-// numero ^ 2
 potencia
-    : valor (POTENCIA valor)*
+    : unario (POT potencia)?
     ;
 
+// Operadores unarios.
+unario
+    : (NO | MENOS) unario
+    | primario
+    ;
 
-// Valores basicos que pueden aparecer en una expresion.
-valor
+// Valores primarios.
+primario
     : NUMBER
     | STRING
     | VERDADERO
     | FALSO
+    | listaLiteral
+    | llamada
+    | ID CORCHETE_IZQ expr CORCHETE_DER
     | ID
-    | PAREN_IZQ expresion PAREN_DER
+    | PAREN_IZQ expr PAREN_DER
     ;
 
-
-// ======================================================
-// TOKENS / PALABRAS RESERVADAS
-// El lexer convierte el texto en unidades llamadas tokens.
-// Las palabras reservadas deben aparecer antes de ID.
-// ======================================================
-
-ABRIR
-    : 'abrir'
+// Lista o matriz anidada.
+listaLiteral
+    : CORCHETE_IZQ (expr (COMA expr)*)? CORCHETE_DER
     ;
 
-TOMAR
-    : 'tomar'
+// Llamada a funcion.
+llamada
+    : ID PAREN_IZQ argumentos? PAREN_DER
     ;
 
-CUANDO
-    : 'cuando'
+// Argumentos de funcion.
+argumentos
+    : expr (COMA expr)*
     ;
 
-ORDENAR
-    : 'ordenar'
-    ;
+// Datos.
+ABRIR               : 'abrir';
+TOMAR               : 'tomar';
+CUANDO              : 'cuando';
+ORDENAR             : 'ordenar';
+POR                 : 'por';
+ASC                 : 'asc';
+DESC                : 'desc';
+CREAR               : 'crear';
+RELLENAR            : 'rellenar';
+CON                  : 'con';
+ELIMINAR_NULOS      : 'eliminar_nulos';
+ELIMINAR_DUPLICADOS : 'eliminar_duplicados';
+RENOMBRAR           : 'renombrar';
+CONVERTIR           : 'convertir';
+A                   : 'a';
+AGRUPAR             : 'agrupar';
+RESUMIR             : 'resumir';
+GUARDAR             : 'guardar';
+COMO                : 'como';
 
-POR
-    : 'por'
-    ;
+// Control.
+IMPRIMIR : 'imprimir';
+SI       : 'si';
+SINO     : 'sino';
+MIENTRAS : 'mientras';
+PARA     : 'para';
+DESDE    : 'desde';
+HASTA    : 'hasta';
+PASO     : 'paso';
+FUNCION  : 'funcion';
+RETORNAR : 'retornar';
 
-ASC
-    : 'asc'
-    ;
+// Tipos.
+NUMERO_T  : 'numero';
+ENTERO_T  : 'entero';
+DECIMAL_T : 'decimal';
+TEXTO_T   : 'texto';
+LOGICO_T  : 'logico';
+LISTA_T   : 'lista';
+MATRIZ_T  : 'matriz';
 
-DESC
-    : 'desc'
-    ;
+// Graficas.
+GRAFICAR     : 'graficar';
+TIPO_GRAFICA : 'barras' | 'lineas' | 'histograma' | 'dispersion' | 'caja';
+DE           : 'de';
+EJE_X        : 'eje_x';
+EJE_Y        : 'eje_y';
+TITULO       : 'titulo';
 
-CREAR
-    : 'crear'
-    ;
+// Logica.
+VERDADERO : 'verdadero';
+FALSO     : 'falso';
+Y         : 'y';
+O         : 'o';
+NO        : 'no';
 
-RELLENAR
-    : 'rellenar'
-    ;
+// Operadores.
+ASIGNAR     : ':=';
+IGUAL       : '==';
+DIFERENTE   : '!=';
+MAYOR_IGUAL : '>=';
+MENOR_IGUAL : '<=';
+MAYOR       : '>';
+MENOR       : '<';
+MAS         : '+';
+MENOS       : '-';
+MULT        : '*';
+DIV         : '/';
+MOD         : '%';
+POT         : '^';
+FLECHA      : '->';
 
-CON
-    : 'con'
-    ;
+// Delimitadores.
+PAREN_IZQ    : '(';
+PAREN_DER    : ')';
+CORCHETE_IZQ : '[';
+CORCHETE_DER : ']';
+LLAVE_IZQ    : '{';
+LLAVE_DER    : '}';
+COMA         : ',';
+FIN          : ';';
 
-ELIMINAR_NULOS
-    : 'eliminar_nulos'
-    ;
+// Literales.
+NUMBER : [0-9]+ ('.' [0-9]+)?;
+STRING : '"' ( '\\' . | ~["\\\r\n] )* '"';
+ID     : [a-zA-Z_][a-zA-Z0-9_]*;
 
-AGRUPAR
-    : 'agrupar'
-    ;
-
-RESUMIR
-    : 'resumir'
-    ;
-
-GUARDAR
-    : 'guardar'
-    ;
-
-COMO
-    : 'como'
-    ;
-
-MOSTRAR
-    : 'mostrar'
-    ;
-
-BARRAS
-    : 'barras'
-    ;
-
-DE
-    : 'de'
-    ;
-
-SUMA
-    : 'suma'
-    ;
-
-MEDIA
-    : 'media'
-    ;
-
-MEDIANA
-    : 'mediana'
-    ;
-
-MINIMO
-    : 'minimo'
-    ;
-
-MAXIMO
-    : 'maximo'
-    ;
-
-DESVIACION
-    : 'desviacion'
-    ;
-
-CONTAR
-    : 'contar'
-    ;
-
-VERDADERO
-    : 'verdadero'
-    ;
-
-FALSO
-    : 'falso'
-    ;
-
-Y
-    : 'y'
-    ;
-
-O
-    : 'o'
-    ;
-
-
-// ======================================================
-// OPERADORES Y SIMBOLOS
-// ======================================================
-
-FLECHA
-    : '->'
-    ;
-
-ASIGNAR
-    : ':='
-    ;
-
-MAYOR_IGUAL
-    : '>='
-    ;
-
-MENOR_IGUAL
-    : '<='
-    ;
-
-IGUAL
-    : '=='
-    ;
-
-DIFERENTE
-    : '!='
-    ;
-
-MAYOR
-    : '>'
-    ;
-
-MENOR
-    : '<'
-    ;
-
-MAS
-    : '+'
-    ;
-
-MENOS
-    : '-'
-    ;
-
-MULTIPLICAR
-    : '*'
-    ;
-
-DIVIDIR
-    : '/'
-    ;
-
-MODULO
-    : '%'
-    ;
-
-POTENCIA
-    : '^'
-    ;
-
-PAREN_IZQ
-    : '('
-    ;
-
-PAREN_DER
-    : ')'
-    ;
-
-CORCHETE_IZQ
-    : '['
-    ;
-
-CORCHETE_DER
-    : ']'
-    ;
-
-COMA
-    : ','
-    ;
-
-FIN
-    : ';'
-    ;
-
-
-// ======================================================
-// LITERALES E IDENTIFICADORES
-// ======================================================
-
-
-// Numero entero o decimal.
-//
-// Ejemplos:
-// 10
-// 25.5
-NUMBER
-    : [0-9]+ ('.' [0-9]+)?
-    ;
-
-
-// Texto entre comillas dobles.
-//
-// Ejemplo:
-// "ventas.csv"
-STRING
-    : '"' (~["\r\n])* '"'
-    ;
-
-
-// Nombre utilizado para variables y columnas.
-//
-// Ejemplos:
-// datos
-// ventas_limpias
-// precio2026
-ID
-    : [a-zA-Z_] [a-zA-Z0-9_]*
-    ;
-
-
-// Los comentarios que empiezan con # son ignorados
-// por el lexer.
-//
-// Ejemplo:
-// # Este es un comentario
-COMENTARIO
-    : '#' ~[\r\n]* -> skip
-    ;
-
-
-// Los espacios, saltos de linea y tabulaciones
-// tambien son ignorados.
-ESPACIO
-    : [ \t\r\n]+ -> skip
-    ;
+// Espacios y comentarios.
+WS              : [ \t\r\n]+ -> skip;
+COMENTARIO      : '//' ~[\r\n]* -> skip;
+COMENTARIO_HASH : '#' ~[\r\n]* -> skip;
+COMENTARIO_BLOQ : '/*' .*? '*/' -> skip;

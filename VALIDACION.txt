@@ -1,0 +1,26 @@
+VALIDACION DATADSL FINAL V2
+==========================
+
+Resultado del nucleo:
+
+----------------------------------------------------------------------
+Ran 38 tests in 0.612s
+
+OK
+
+AUDITORIA: OK
+Sin pandas, numpy, sklearn ni pytest.
+Archivos Python principales con comentarios.
+
+Evidencias generadas en evidencias/.
+
+Dependencias externas directas:
+- antlr4-python3-runtime: obligatorio por el proyecto.
+- matplotlib: solo renderiza PNG.
+
+No se usan directamente pandas, numpy, scikit-learn ni pytest.
+
+Pendiente de entorno Ubuntu:
+- Ejecutar bash generar_antlr.sh para crear Lexer/Parser/Visitor.
+- Ejecutar python3 scripts/validar_dsl.py para probar los .dsl completos.
+El generador ANTLR no esta instalado en este entorno de empaquetado.

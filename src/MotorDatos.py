@@ -1,358 +1,193 @@
-# ======================================================
-# MOTOR DE PROCESAMIENTO DE DATOS
-# ======================================================
-# Tablas - Procesamiento - Datos
-# Este archivo contiene las operaciones reales que
-# DataDSL puede realizar sobre los datos.
-#
-# La gramatica solo reconoce instrucciones.
-# El Visitor interpreta esas instrucciones.
-# El MotorDatos ejecuta las operaciones usando pandas.
-#
-# Ejemplo:
-#
-# datos := abrir "ventas.csv";
-#
-# La gramatica reconoce "abrir".
-# El Visitor recibe esa instruccion.
-# MotorDatos utiliza pandas para leer el CSV.
-#
-# En resumen:
-# este archivo transforma los DataFrames.
-# ======================================================
+# Motor tabular propio de DataDSL.
 
-
-import os
-import pandas as pd
-
+from librerias.DataStats import media, mediana, minimo, maximo, desviacion
+from librerias.DataTable import TablaDatos, AgrupacionDatos
 from src.ErroresSemanticos import (
     ArchivoNoExisteError,
     ColumnaNoExisteError,
-    OperacionNoPermitidaError
+    TipoIncompatibleError,
+    OperacionNoPermitidaError,
 )
 
 
 class MotorDatos:
-
-    # --------------------------------------------------
-    # CARGAR CSV
-    # --------------------------------------------------
-
     @staticmethod
     def abrir_csv(ruta):
-        """
-        Lee un archivo CSV y devuelve un DataFrame.
-
-        Un DataFrame es la estructura que utiliza pandas
-        para representar datos en forma de tabla.
-        """
-
-        if not os.path.exists(ruta):
-            raise ArchivoNoExisteError(ruta)
-
+        # Carga CSV en TablaDatos.
         try:
-            return pd.read_csv(ruta)
-
+            return TablaDatos.desde_csv(ruta)
+        except FileNotFoundError:
+            raise ArchivoNoExisteError(str(ruta))
         except Exception as error:
-            raise OperacionNoPermitidaError(
-                f"No fue posible leer el archivo '{ruta}': {error}"
-            )
-
-
-    # --------------------------------------------------
-    # SELECCIONAR COLUMNAS
-    # --------------------------------------------------
-
-    @staticmethod
-    def tomar_columnas(datos, columnas):
-        """
-        Devuelve un nuevo DataFrame que contiene
-        solamente las columnas indicadas.
-        """
-
-        MotorDatos._validar_columnas(datos, columnas)
-
-        # Se usa copy() para evitar modificar
-        # silenciosamente el DataFrame original.
-        return datos[columnas].copy()
-
-
-    # --------------------------------------------------
-    # FILTRAR DATOS
-    # --------------------------------------------------
-
-    @staticmethod
-    def filtrar(datos, condicion):
-        """
-        Recibe una condicion booleana creada por el Visitor.
-
-        Ejemplo conceptual:
-
-        precio > 100
-
-        pandas genera una serie de valores True/False
-        y solo conserva las filas donde el resultado es True.
-        """
-
-        try:
-            return datos[condicion].copy()
-
-        except Exception as error:
-            raise OperacionNoPermitidaError(
-                f"No fue posible aplicar el filtro: {error}"
-            )
-
-
-    # --------------------------------------------------
-    # ORDENAR
-    # --------------------------------------------------
-
-    @staticmethod
-    def ordenar(datos, columna, direccion="asc"):
-        """
-        Ordena el DataFrame utilizando una columna.
-
-        asc  -> menor a mayor
-        desc -> mayor a menor
-        """
-
-        MotorDatos._validar_columnas(
-            datos,
-            [columna]
-        )
-
-        ascendente = direccion != "desc"
-
-        return datos.sort_values(
-            by=columna,
-            ascending=ascendente
-        ).copy()
-
-
-    # --------------------------------------------------
-    # CREAR COLUMNA
-    # --------------------------------------------------
-
-    @staticmethod
-    def crear_columna(datos, nombre, valores):
-        """
-        Crea una nueva columna dentro de una copia
-        del DataFrame.
-
-        Ejemplo del DSL:
-
-        -> crear total := cantidad * precio
-        """
-
-        resultado = datos.copy()
-
-        resultado[nombre] = valores
-
-        return resultado
-
-
-    # --------------------------------------------------
-    # RELLENAR VALORES NULOS
-    # --------------------------------------------------
-
-    @staticmethod
-    def rellenar_nulos(datos, columna, valor):
-        """
-        Reemplaza valores faltantes de una columna.
-
-        Ejemplo:
-
-        -> rellenar precio con 0
-        """
-
-        MotorDatos._validar_columnas(
-            datos,
-            [columna]
-        )
-
-        resultado = datos.copy()
-
-        resultado[columna] = resultado[columna].fillna(valor)
-
-        return resultado
-
-
-    # --------------------------------------------------
-    # ELIMINAR FILAS CON NULOS
-    # --------------------------------------------------
-
-    @staticmethod
-    def eliminar_nulos(datos, columnas):
-        """
-        Elimina las filas donde alguna de las columnas
-        indicadas tenga un valor faltante.
-        """
-
-        MotorDatos._validar_columnas(
-            datos,
-            columnas
-        )
-
-        return datos.dropna(
-            subset=columnas
-        ).copy()
-
-
-    # --------------------------------------------------
-    # AGRUPAR DATOS
-    # --------------------------------------------------
-
-    @staticmethod
-    def agrupar(datos, columnas):
-        """
-        Prepara un agrupamiento usando una o varias columnas.
-
-        Ejemplo:
-
-        -> agrupar por [ciudad]
-
-        El resultado es un objeto GroupBy de pandas,
-        que despues puede ser utilizado por resumir().
-        """
-
-        MotorDatos._validar_columnas(
-            datos,
-            columnas
-        )
-
-        return datos.groupby(
-            columnas,
-            dropna=False
-        )
-
-
-    # --------------------------------------------------
-    # RESUMIR DATOS
-    # --------------------------------------------------
-
-    @staticmethod
-    def resumir(datos_agrupados, agregaciones):
-        """
-        Calcula estadisticas sobre datos agrupados.
-
-        agregaciones es una lista con informacion como:
-
-        [
-            ("ingreso", "suma", "total"),
-            ("promedio", "media", "total"),
-            ("registros", "contar", None)
-        ]
-
-        El Visitor construira esta informacion
-        a partir del programa escrito en DataDSL.
-        """
-
-        resultados = []
-
-        for nombre, funcion, columna in agregaciones:
-
-            if funcion == "contar":
-                serie = datos_agrupados.size()
-                serie.name = nombre
-                resultados.append(serie)
-                continue
-
-            datos_originales = datos_agrupados.obj
-
-            MotorDatos._validar_columnas(
-                datos_originales,
-                [columna]
-            )
-
-            grupo_columna = datos_agrupados[columna]
-
-            if funcion == "suma":
-                serie = grupo_columna.sum()
-
-            elif funcion == "media":
-                serie = grupo_columna.mean()
-
-            elif funcion == "mediana":
-                serie = grupo_columna.median()
-
-            elif funcion == "minimo":
-                serie = grupo_columna.min()
-
-            elif funcion == "maximo":
-                serie = grupo_columna.max()
-
-            elif funcion == "desviacion":
-                serie = grupo_columna.std()
-
-            else:
-                raise OperacionNoPermitidaError(
-                    f"La funcion '{funcion}' no existe."
-                )
-
-            serie.name = nombre
-            resultados.append(serie)
-
-        # concat une todas las estadisticas calculadas
-        # en una sola tabla.
-        resumen = pd.concat(
-            resultados,
-            axis=1
-        )
-
-        # reset_index convierte las columnas usadas
-        # para agrupar nuevamente en columnas normales.
-        return resumen.reset_index()
-
-
-    # --------------------------------------------------
-    # GUARDAR CSV
-    # --------------------------------------------------
+            raise OperacionNoPermitidaError(str(error)) from error
 
     @staticmethod
     def guardar_csv(datos, ruta):
-        """
-        Exporta un DataFrame a un archivo CSV.
-
-        Ejemplo del DSL:
-
-        guardar resumen como "salidas/resumen.csv";
-        """
-
-        carpeta = os.path.dirname(ruta)
-
-        # Si la ruta contiene una carpeta y esta no existe,
-        # se crea automaticamente.
-        if carpeta:
-            os.makedirs(
-                carpeta,
-                exist_ok=True
-            )
-
-        datos.to_csv(
-            ruta,
-            index=False
-        )
-
-        return ruta
-
-
-    # --------------------------------------------------
-    # VALIDACION DE COLUMNAS
-    # --------------------------------------------------
+        # Exporta TablaDatos a CSV.
+        if not isinstance(datos, TablaDatos):
+            raise TipoIncompatibleError("guardar requiere una TablaDatos.")
+        return datos.a_csv(ruta)
 
     @staticmethod
-    def _validar_columnas(datos, columnas):
-        """
-        Comprueba que todas las columnas solicitadas
-        existan dentro del DataFrame.
+    def _validar_tabla(datos):
+        # Comprueba el tipo tabular.
+        if not isinstance(datos, TablaDatos):
+            raise TipoIncompatibleError("Se esperaba una TablaDatos.")
 
-        El guion bajo indica que este metodo esta pensado
-        para uso interno del MotorDatos.
-        """
+    @staticmethod
+    def _traducir_error_columna(error):
+        # Convierte KeyError a error del DSL.
+        columna = str(error).strip("'")
+        raise ColumnaNoExisteError(columna) from error
 
-        for columna in columnas:
+    @staticmethod
+    def tomar_columnas(datos, columnas):
+        # Selecciona columnas.
+        MotorDatos._validar_tabla(datos)
+        try:
+            return datos.tomar(columnas)
+        except KeyError as error:
+            MotorDatos._traducir_error_columna(error)
 
-            if columna not in datos.columns:
-                raise ColumnaNoExisteError(
-                    columna
-                )
+    @staticmethod
+    def filtrar(datos, predicado):
+        # Filtra filas con una funcion.
+        MotorDatos._validar_tabla(datos)
+        try:
+            return datos.filtrar(predicado)
+        except Exception as error:
+            if isinstance(error, (ColumnaNoExisteError, TipoIncompatibleError)):
+                raise
+            raise OperacionNoPermitidaError(f"filtro invalido: {error}") from error
+
+    @staticmethod
+    def ordenar(datos, columna, direccion="asc"):
+        # Ordena filas.
+        MotorDatos._validar_tabla(datos)
+        try:
+            return datos.ordenar(columna, direccion)
+        except KeyError as error:
+            MotorDatos._traducir_error_columna(error)
+
+    @staticmethod
+    def crear_columna(datos, nombre, generador):
+        # Crea una columna calculada.
+        MotorDatos._validar_tabla(datos)
+        return datos.crear_columna(nombre, generador)
+
+    @staticmethod
+    def rellenar_nulos(datos, columna, valor):
+        # Reemplaza valores nulos.
+        MotorDatos._validar_tabla(datos)
+        try:
+            return datos.rellenar_nulos(columna, valor)
+        except KeyError as error:
+            MotorDatos._traducir_error_columna(error)
+
+    @staticmethod
+    def eliminar_nulos(datos, columnas):
+        # Elimina filas con nulos.
+        MotorDatos._validar_tabla(datos)
+        try:
+            return datos.eliminar_nulos(columnas)
+        except KeyError as error:
+            MotorDatos._traducir_error_columna(error)
+
+    @staticmethod
+    def eliminar_duplicados(datos):
+        # Elimina filas duplicadas.
+        MotorDatos._validar_tabla(datos)
+        return datos.eliminar_duplicados()
+
+    @staticmethod
+    def renombrar(datos, anterior, nuevo):
+        # Renombra una columna.
+        MotorDatos._validar_tabla(datos)
+        try:
+            return datos.renombrar(anterior, nuevo)
+        except KeyError as error:
+            MotorDatos._traducir_error_columna(error)
+
+    @staticmethod
+    def convertir(datos, columna, tipo):
+        # Convierte el tipo de una columna.
+        MotorDatos._validar_tabla(datos)
+        try:
+            return datos.convertir(columna, tipo)
+        except KeyError as error:
+            MotorDatos._traducir_error_columna(error)
+        except Exception as error:
+            raise TipoIncompatibleError(str(error)) from error
+
+    @staticmethod
+    def agrupar(datos, columnas):
+        # Agrupa por columnas.
+        MotorDatos._validar_tabla(datos)
+        try:
+            return datos.agrupar(columnas)
+        except KeyError as error:
+            MotorDatos._traducir_error_columna(error)
+
+    @staticmethod
+    def resumir(agrupados, agregaciones):
+        # Resume cada grupo.
+        if not isinstance(agrupados, AgrupacionDatos):
+            raise TipoIncompatibleError("resumir requiere un agrupamiento.")
+
+        columnas_salida = list(agrupados.columnas) + [nombre for nombre, _, _ in agregaciones]
+        filas_salida = []
+
+        for clave, filas in agrupados.items():
+            salida = {col: valor for col, valor in zip(agrupados.columnas, clave)}
+            for nombre, funcion, columna in agregaciones:
+                if funcion == "contar":
+                    salida[nombre] = len(filas)
+                    continue
+
+                if columna not in agrupados.tabla.columnas:
+                    raise ColumnaNoExisteError(columna)
+                valores = [fila.get(columna) for fila in filas if fila.get(columna) is not None]
+                operaciones = {
+                    "suma": lambda x: sum(float(v) for v in x),
+                    "media": media,
+                    "mediana": mediana,
+                    "minimo": minimo,
+                    "maximo": maximo,
+                    "desviacion": desviacion,
+                }
+                if funcion not in operaciones:
+                    raise OperacionNoPermitidaError(f"Agregacion desconocida: {funcion}")
+                salida[nombre] = operaciones[funcion](valores)
+            filas_salida.append(salida)
+
+        return TablaDatos(columnas_salida, filas_salida)
+
+    @staticmethod
+    def columna(datos, nombre):
+        # Devuelve una columna como lista.
+        MotorDatos._validar_tabla(datos)
+        try:
+            return datos.columna(str(nombre))
+        except KeyError as error:
+            MotorDatos._traducir_error_columna(error)
+
+    @staticmethod
+    def matriz_columnas(datos, columnas):
+        # Convierte columnas en matriz.
+        MotorDatos._validar_tabla(datos)
+        try:
+            return datos.matriz_columnas(columnas)
+        except KeyError as error:
+            MotorDatos._traducir_error_columna(error)
+
+    @staticmethod
+    def filas(datos):
+        # Cuenta filas.
+        MotorDatos._validar_tabla(datos)
+        return len(datos)
+
+    @staticmethod
+    def nombres_columnas(datos):
+        # Lista columnas.
+        MotorDatos._validar_tabla(datos)
+        return datos.nombres_columnas()
