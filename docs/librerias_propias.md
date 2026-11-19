@@ -4,13 +4,13 @@ DataDSL prioriza implementaciones propias.
 
 ## Propias
 
-- `DataTable`: tablas y CSV.
+- `DataTable`: tablas, CSV y lectura XLSX propia sobre ZIP/XML.
 - `DataMath`: matemáticas.
 - `DataStats`: estadística.
 - `DataMatrix`: matrices.
 - `DataRandom`: pseudoaleatorios.
 - `DataFiles`: archivos de texto.
-- `DataML`: Machine Learning.
+- `DataML`: Machine Learning, incluyendo MLP con backpropagation.
 - `DataGraph`: interfaz de visualización.
 
 ## Externas justificadas
@@ -30,4 +30,7 @@ DataDSL no usa directamente:
 - pandas;
 - NumPy;
 - scikit-learn;
-- pytest.
+- pytest;
+- openpyxl.
+
+La lectura de Excel no requiere una dependencia adicional: DataDSL interpreta directamente la estructura ZIP/XML de `.xlsx` con módulos estándar de Python.
