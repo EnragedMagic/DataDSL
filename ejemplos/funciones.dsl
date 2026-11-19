@@ -3,11 +3,11 @@ funcion cuadrado(x) {
     retornar x * x;
 }
 
-funcion mayor(a, b) {
-    si (a > b) {
-        retornar a;
+funcion mayor(primero, segundo) {
+    si (primero > segundo) {
+        retornar primero;
     }
-    retornar b;
+    retornar segundo;
 }
 
 imprimir cuadrado(5);
