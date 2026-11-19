@@ -52,7 +52,7 @@ def predecir_lineal(modelo, x):
     return resultados[0] if len(resultados) == 1 else resultados
 
 
-def _sigmoide(z):
+def sigmoide(z):
     # Convierte un valor en probabilidad.
     z = float(z)
     if z >= 0:
@@ -74,7 +74,7 @@ def regresion_logistica(x, y, tasa=0.1, epocas=1000):
     for _ in range(int(epocas)):
         gradiente = [0.0] * len(pesos)
         for fila, objetivo in zip(diseno, y):
-            prob = _sigmoide(sum(w * v for w, v in zip(pesos, fila)))
+            prob = sigmoide(sum(w * v for w, v in zip(pesos, fila)))
             error = prob - objetivo
             for j, valor in enumerate(fila):
                 gradiente[j] += error * valor
@@ -90,7 +90,7 @@ def probabilidad_logistica(modelo, x):
     filas = _matriz_x(x)
     pesos = modelo["pesos"]
     probs = [
-        _sigmoide(pesos[0] + sum(w * v for w, v in zip(pesos[1:], fila)))
+        sigmoide(pesos[0] + sum(w * v for w, v in zip(pesos[1:], fila)))
         for fila in filas
     ]
     return probs[0] if len(probs) == 1 else probs
@@ -242,7 +242,121 @@ def kmeans(datos, columnas_o_k=2, k=3, max_iter=100):
     return kmeans_lista(datos, columnas_o_k, k)
 
 
+def entrenar_mlp(x, y, ocultas=2, tasa=1.0, epocas=3000):
+    # Entrena una red de una capa oculta.
+    x = _matriz_x(x)
+    y = _vector_y(y)
+    if len(x) != len(y) or not x:
+        raise ValueError("X e y deben tener igual cantidad de filas.")
+
+    entradas = len(x[0])
+    ocultas = int(ocultas)
+    if ocultas < 1:
+        raise ValueError("La red necesita al menos una neurona oculta.")
+
+    # Inicializa pesos de forma determinista.
+    w1 = [
+        [((((i + 1) * (j + 2)) % 7) - 3) / 5.0 for j in range(entradas)]
+        for i in range(ocultas)
+    ]
+    b1 = [0.0] * ocultas
+    w2 = [((((i + 2) * 3) % 7) - 3) / 5.0 for i in range(ocultas)]
+    b2 = 0.0
+
+    historial_error = []
+    historial_epocas = []
+    tasa = float(tasa)
+    epocas = int(epocas)
+    salto = max(1, epocas // 100)
+
+    for epoca in range(epocas):
+        grad_w1 = [[0.0] * entradas for _ in range(ocultas)]
+        grad_b1 = [0.0] * ocultas
+        grad_w2 = [0.0] * ocultas
+        grad_b2 = 0.0
+        error_total = 0.0
+
+        for fila, objetivo in zip(x, y):
+            # Propagacion hacia adelante.
+            salida_oculta = [
+                sigmoide(sum(w1[i][j] * fila[j] for j in range(entradas)) + b1[i])
+                for i in range(ocultas)
+            ]
+            salida = sigmoide(sum(w2[i] * salida_oculta[i] for i in range(ocultas)) + b2)
+            error_total += (salida - objetivo) ** 2
+
+            # Retropropagacion.
+            delta_salida = salida - objetivo
+            for i in range(ocultas):
+                grad_w2[i] += delta_salida * salida_oculta[i]
+                delta_oculta = (
+                    delta_salida
+                    * w2[i]
+                    * salida_oculta[i]
+                    * (1.0 - salida_oculta[i])
+                )
+                for j in range(entradas):
+                    grad_w1[i][j] += delta_oculta * fila[j]
+                grad_b1[i] += delta_oculta
+            grad_b2 += delta_salida
+
+        cantidad = len(x)
+        for i in range(ocultas):
+            w2[i] -= tasa * grad_w2[i] / cantidad
+            b1[i] -= tasa * grad_b1[i] / cantidad
+            for j in range(entradas):
+                w1[i][j] -= tasa * grad_w1[i][j] / cantidad
+        b2 -= tasa * grad_b2 / cantidad
+
+        if epoca % salto == 0 or epoca == epocas - 1:
+            historial_epocas.append(epoca)
+            historial_error.append(error_total / cantidad)
+
+    return {
+        "tipo": "mlp",
+        "entradas": entradas,
+        "ocultas": ocultas,
+        "w1": w1,
+        "b1": b1,
+        "w2": w2,
+        "b2": b2,
+        "historial_epocas": historial_epocas,
+        "historial_error": historial_error,
+    }
+
+
+def probabilidad_mlp(modelo, x):
+    # Calcula la salida de la red.
+    if modelo.get("tipo") != "mlp":
+        raise TypeError("El modelo no es un MLP.")
+    filas = _matriz_x(x)
+    resultados = []
+    for fila in filas:
+        salida_oculta = [
+            sigmoide(
+                sum(modelo["w1"][i][j] * fila[j] for j in range(modelo["entradas"]))
+                + modelo["b1"][i]
+            )
+            for i in range(modelo["ocultas"])
+        ]
+        salida = sigmoide(
+            sum(modelo["w2"][i] * salida_oculta[i] for i in range(modelo["ocultas"]))
+            + modelo["b2"]
+        )
+        resultados.append(salida)
+    return resultados[0] if len(resultados) == 1 else resultados
+
+
+def predecir_mlp(modelo, x, umbral=0.5):
+    # Convierte la salida del MLP en clases.
+    probabilidades = probabilidad_mlp(modelo, x)
+    if isinstance(probabilidades, list):
+        return [1 if valor >= umbral else 0 for valor in probabilidades]
+    return 1 if probabilidades >= umbral else 0
+
+
 FUNCTIONS = {
+    "sigmoide": sigmoide,
     "regresion_lineal": regresion_lineal,
     "predecir_lineal": predecir_lineal,
     "regresion_logistica": regresion_logistica,
@@ -258,4 +372,7 @@ FUNCTIONS = {
     "entrenar_logistica": entrenar_logistica,
     "entrenar_knn": entrenar_knn,
     "predecir_knn": predecir_knn,
+    "entrenar_mlp": entrenar_mlp,
+    "probabilidad_mlp": probabilidad_mlp,
+    "predecir_mlp": predecir_mlp,
 }
