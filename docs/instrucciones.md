@@ -71,3 +71,36 @@ guardar resumen como "salidas/resumen.csv";
 ```text
 graficar barras de resumen eje_x ciudad eje_y ingreso titulo "Ingresos" como "salidas/ingresos.png";
 ```
+
+## Factorial y primos
+
+```text
+imprimir factorial(5);
+imprimir es_primo(17);
+```
+
+## Sigmoide
+
+```text
+imprimir sigmoide(0);
+graficar_funcion("sigmoide", -10, 10, 0.2, "salidas/sigmoide.png", "Sigmoide");
+```
+
+## MLP para XOR
+
+```text
+matriz entradas := [[0, 0], [0, 1], [1, 0], [1, 1]];
+lista valores_xor := [0, 1, 1, 0];
+modelo_xor := entrenar_mlp(entradas, valores_xor, 2, 1, 3000);
+imprimir predecir_mlp(modelo_xor, entradas);
+graficar_entrenamiento(modelo_xor, "salidas/xor_error.png", "XOR");
+```
+
+## Excel y EDA
+
+```text
+datos_excel := abrir "Data.xlsx";
+resumen_eda := eda(datos_excel);
+imprimir resumen_eda;
+guardar resumen_eda como "salidas/eda_data.csv";
+```
