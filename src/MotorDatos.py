@@ -13,8 +13,11 @@ from src.ErroresSemanticos import (
 class MotorDatos:
     @staticmethod
     def abrir_csv(ruta):
-        # Carga CSV en TablaDatos.
+        # Carga CSV o XLSX en TablaDatos.
         try:
+            texto = str(ruta).lower()
+            if texto.endswith(".xlsx"):
+                return TablaDatos.desde_xlsx(ruta)
             return TablaDatos.desde_csv(ruta)
         except FileNotFoundError:
             raise ArchivoNoExisteError(str(ruta))
