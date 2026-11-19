@@ -30,13 +30,13 @@ CSV / estadísticas / ML / PNG
 
 La lógica del lenguaje está implementada en módulos propios:
 
-- `DataTable.py`: estructura tabular propia, sin pandas.
+- `DataTable.py`: estructura tabular propia, con lectura CSV y XLSX sin pandas ni openpyxl.
 - `DataMath.py`: matemáticas básicas.
 - `DataStats.py`: estadística descriptiva.
 - `DataMatrix.py`: álgebra lineal.
 - `DataRandom.py`: generador pseudoaleatorio LCG.
 - `DataFiles.py`: lectura y escritura de texto.
-- `DataML.py`: regresión lineal, logística, KNN, K-Means y métricas.
+- `DataML.py`: regresión lineal, logística, KNN, K-Means, MLP y métricas.
 - `DataGraph.py`: prepara las gráficas.
 
 ### Excepciones externas justificadas
@@ -58,7 +58,8 @@ DataDSL soporta:
 - funciones y `retornar`;
 - archivos de texto;
 - números aleatorios;
-- carga y guardado CSV;
+- carga CSV y XLSX con lector propio;
+- guardado CSV;
 - selección y filtrado de filas;
 - ordenamiento;
 - columnas calculadas;
@@ -71,6 +72,10 @@ DataDSL soporta:
 - cinco tipos de gráficas;
 - regresión lineal y logística;
 - KNN y K-Means;
+- perceptrón multicapa (MLP) con backpropagation;
+- sigmoide pública y gráfica de entrenamiento;
+- análisis exploratorio de datos (EDA);
+- filtro de números primos;
 - métricas de clasificación.
 
 ## Gráficas
@@ -94,6 +99,33 @@ graficar barras de resumen
     titulo "Ingresos por ciudad"
     como "salidas/ingresos.png";
 ```
+
+
+## Ejercicios del tablero
+
+DataDSL incluye ejemplos listos para los cinco ejercicios:
+
+```bash
+python3 main.py ejemplos/tablero_factorial_primos.dsl
+python3 main.py ejemplos/tablero_sigmoide.dsl
+python3 main.py ejemplos/tablero_xor.dsl
+```
+
+Para el EDA de Excel, copia el archivo del profesor como `Data.xlsx` en la raíz y ejecuta:
+
+```bash
+python3 main.py ejemplos/tablero_excel.dsl
+```
+
+Los ejemplos cubren:
+
+1. factoriales del 5 al 100;
+2. función sigmoide y exportación PNG;
+3. MLP propio para XOR con backpropagation y gráfica de error;
+4. lectura `.xlsx` propia + EDA;
+5. filtrado de valores primos.
+
+La lectura XLSX se implementa directamente sobre ZIP/XML con módulos estándar de Python. No usa `openpyxl`.
 
 ## Instalación en Ubuntu
 
