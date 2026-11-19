@@ -109,6 +109,24 @@ def tangente(x):
     return seno(x) / valor_coseno
 
 
+def es_primo(n):
+    # Comprueba si un entero es primo.
+    n = int(n)
+    if n < 2:
+        return False
+    if n == 2:
+        return True
+    if n % 2 == 0:
+        return False
+    limite = int(raiz(n))
+    divisor = 3
+    while divisor <= limite:
+        if n % divisor == 0:
+            return False
+        divisor += 2
+    return True
+
+
 FUNCTIONS = {
     "raiz": raiz,
     "potencia": potencia,
@@ -118,5 +136,6 @@ FUNCTIONS = {
     "seno": seno,
     "coseno": coseno,
     "tangente": tangente,
+    "es_primo": es_primo,
     "abs": abs,
 }
