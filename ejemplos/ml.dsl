@@ -1,8 +1,8 @@
 # Machine Learning con librerias propias.
 matriz x := [[1], [2], [3], [4], [5]];
-lista y := [3, 5, 7, 9, 11];
+lista valores_y := [3, 5, 7, 9, 11];
 
-modelo := regresion_lineal(x, y);
+modelo := regresion_lineal(x, valores_y);
 prediccion := predecir_lineal(modelo, [[6]]);
 imprimir prediccion;
 
