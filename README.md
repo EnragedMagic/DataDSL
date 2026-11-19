@@ -163,15 +163,7 @@ DataDSL_Final_v2/
 └── generar_antlr.sh
 ```
 
-## Explicación corta para sustentación
 
-- **Gramática:** define cómo se escribe DataDSL.
-- **Lexer:** reconoce palabras y símbolos.
-- **Parser:** verifica la estructura.
-- **Visitor:** interpreta las instrucciones.
-- **ContextoEjecucion:** guarda variables y funciones.
-- **MotorDatos:** ejecuta operaciones tabulares.
-- **DataTable:** reemplaza pandas con una tabla propia.
 - **DataML:** implementa algoritmos de Machine Learning.
 - **DataGraph:** genera las visualizaciones PNG.
 
