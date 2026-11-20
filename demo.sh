@@ -21,6 +21,11 @@ python3 main.py ejemplos/ml.dsl
 python3 main.py ejemplos/graficas.dsl
 python3 main.py ejemplos/programa_final.dsl
 
+# Genera las tres visualizaciones de Machine Learning.
+python3 main.py ejemplos/ml_regresion.dsl
+python3 main.py ejemplos/ml_knn.dsl
+python3 main.py ejemplos/ml_kmeans.dsl
+
 # Ejecuta todas las pruebas.
 python3 -m unittest discover -s tests -v
 

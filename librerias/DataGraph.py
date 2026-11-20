@@ -161,7 +161,92 @@ def graficar_entrenamiento(modelo, ruta="salidas/entrenamiento.png", titulo="Err
     return str(ruta)
 
 
+
+# Representaciones especificas de algoritmos que calcula DataML.
+def graficar_regresion(tabla, modelo, x, y, ruta="salidas/ml_regresion.png", titulo="Regresion lineal"):
+    # Puntos observados y recta predicha por un modelo de una sola entrada.
+    from librerias.DataML import predecir_lineal
+    if not isinstance(tabla, TablaDatos):
+        raise TypeError("Se esperaba una TablaDatos.")
+    tabla.validar_columnas([x, y])
+    if len(modelo.get("pesos", [])) != 2:
+        raise ValueError("Se necesita una regresion con una sola variable de entrada.")
+    pares = sorted((float(f[x]), float(f[y])) for f in tabla.filas)
+    xs, ys = zip(*pares)
+    pred = predecir_lineal(modelo, [[v] for v in xs])
+    ruta = Path(str(ruta))
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.scatter(xs, ys, label="Datos observados")
+    ax.plot(xs, pred, label="Modelo lineal")
+    ax.set(xlabel=x, ylabel=y, title=titulo)
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(ruta, dpi=140)
+    plt.close(fig)
+    return str(ruta)
+
+
+def graficar_knn(tabla, modelo, punto, x, y, ruta="salidas/ml_knn.png", titulo="KNN"):
+    # Muestra clases, un punto nuevo y los K vecinos mas cercanos.
+    if not isinstance(tabla, TablaDatos) or modelo.get("tipo") != "knn":
+        raise TypeError("Se necesita una tabla y un modelo KNN.")
+    if modelo.get("columnas") != [x, y] or len(punto) != 2:
+        raise ValueError("Las dos columnas y el punto deben coincidir con el modelo.")
+    datos, clases = modelo["x"], modelo["y"]
+    if not datos:
+        raise ValueError("El modelo no tiene datos.")
+    px, py = float(punto[0]), float(punto[1])
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for clase in dict.fromkeys(clases):
+        filas = [p for p, etiqueta in zip(datos, clases) if etiqueta == clase]
+        ax.scatter([p[0] for p in filas], [p[1] for p in filas], label=f"Clase {clase}")
+    cercanos = sorted(range(len(datos)), key=lambda i: (datos[i][0]-px)**2+(datos[i][1]-py)**2)
+    cercanos = cercanos[:max(1, min(int(modelo["k"]), len(datos)))]
+    ax.scatter([datos[i][0] for i in cercanos], [datos[i][1] for i in cercanos],
+               s=220, facecolors="none", edgecolors="black", label="Vecinos")
+    ax.scatter([px], [py], marker="*", s=230, color="red", label="Nuevo dato", zorder=5)
+    ax.set(xlabel=x, ylabel=y, title=titulo)
+    ax.legend()
+    ruta = Path(str(ruta))
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(ruta, dpi=140)
+    plt.close(fig)
+    return str(ruta)
+
+
+def graficar_kmeans(tabla, modelo, x, y, ruta="salidas/ml_kmeans.png", titulo="K-Means"):
+    # Dibuja grupos calculados y centroides.
+    if not isinstance(tabla, TablaDatos) or modelo.get("tipo") != "kmeans":
+        raise TypeError("Se necesita una tabla y un modelo K-Means.")
+    if modelo.get("columnas") != [x, y]:
+        raise ValueError("Las columnas no coinciden con el modelo.")
+    datos = tabla.matriz_columnas([x, y])
+    etiquetas = modelo["etiquetas"]
+    if len(datos) != len(etiquetas):
+        raise ValueError("Los grupos no coinciden con las filas.")
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for grupo in sorted(set(etiquetas)):
+        filas = [p for p, e in zip(datos, etiquetas) if e == grupo]
+        ax.scatter([p[0] for p in filas], [p[1] for p in filas], label=f"Grupo {grupo+1}")
+    centros = modelo["centroides"]
+    ax.scatter([p[0] for p in centros], [p[1] for p in centros],
+               marker="x", s=180, linewidths=3, color="black", label="Centroides")
+    ax.set(xlabel=x, ylabel=y, title=titulo)
+    ax.legend()
+    ruta = Path(str(ruta))
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(ruta, dpi=140)
+    plt.close(fig)
+    return str(ruta)
+
+
 FUNCTIONS = {
+    "graficar_regresion": graficar_regresion,
+    "graficar_knn": graficar_knn,
+    "graficar_kmeans": graficar_kmeans,
     "grafica_barras": barras,
     "grafica_lineas": lineas,
     "grafica_histograma": histograma,

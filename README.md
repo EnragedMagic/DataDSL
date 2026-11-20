@@ -101,6 +101,22 @@ graficar barras de resumen
 ```
 
 
+## Gráficas de Machine Learning
+
+Además de los cinco tipos de gráficas normales, ahora hay ejemplos ejecutables de ML:
+
+```bash
+python3 main.py ejemplos/ml_regresion.dsl
+python3 main.py ejemplos/ml_knn.dsl
+python3 main.py ejemplos/ml_kmeans.dsl
+```
+
+- **Regresión lineal:** puntos y recta ajustada en `salidas/ml_regresion.png`.
+- **KNN:** clases, dato nuevo y vecinos en `salidas/ml_knn.png`.
+- **K-Means:** grupos y centroides en `salidas/ml_kmeans.png`.
+
+Los archivos de `datos/` son ejemplos didácticos. Cada CSV tiene una nota de procedencia que DataDSL ignora al leer los datos.
+
 ## Ejercicios del tablero
 
 DataDSL incluye ejemplos listos para los cinco ejercicios:
@@ -130,7 +146,7 @@ La lectura XLSX se implementa directamente sobre ZIP/XML con módulos estándar 
 ## Instalación en Ubuntu
 
 ```bash
-cd DataDSL_Final_v2
+cd DataDSL
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -163,24 +179,12 @@ No se usa pytest. Las pruebas utilizan `unittest`, incluido en Python.
 python3 -m unittest discover -s tests -v
 ```
 
-También hay una auditoría del proyecto:
-
-```bash
-python3 scripts/auditar_proyecto.py
-```
-
-Y, después de generar ANTLR, se pueden validar todos los programas `.dsl`:
-
-```bash
-python3 scripts/validar_dsl.py
-```
-
 ## Estructura
 
 ```text
-DataDSL_Final_v2/
+DataDSL/
 ├── grammar/            # Gramática ANTLR
-├── generated/          # Lexer, Parser y Visitor generados
+├── generated/          # Archivos ANTLR generados localmente
 ├── src/                # Visitor, contexto, motor y errores
 ├── librerias/          # Librerías propias
 ├── datos/              # CSV de ejemplo

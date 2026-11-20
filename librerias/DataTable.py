@@ -21,6 +21,13 @@ class TablaDatos:
             raise FileNotFoundError(str(ruta))
 
         with ruta.open("r", encoding="utf-8-sig", newline="") as archivo:
+            # Las notas de procedencia opcionales van antes del encabezado.
+            while True:
+                posicion = archivo.tell()
+                linea = archivo.readline()
+                if not linea.startswith("# "):
+                    archivo.seek(posicion)
+                    break
             lector = csv.DictReader(archivo, delimiter=separador)
             columnas = lector.fieldnames or []
             filas = []
