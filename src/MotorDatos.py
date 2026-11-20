@@ -1,4 +1,4 @@
-# Motor tabular propio de DataDSL.
+# Coordina las operaciones de lectura, filtro y transformacion de tablas.
 
 from librerias.DataStats import media, mediana, minimo, maximo, desviacion
 from librerias.DataTable import TablaDatos, AgrupacionDatos

@@ -1,4 +1,4 @@
-# Archivos de texto propios de DataDSL.
+# Lee y escribe archivos de texto cuando el programa lo solicita.
 
 from pathlib import Path
 

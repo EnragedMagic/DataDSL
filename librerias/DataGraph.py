@@ -1,4 +1,4 @@
-# Graficas de DataDSL.
+# Convierte datos y resultados de modelos en graficas PNG con Matplotlib.
 # Matplotlib solo renderiza el PNG.
 
 from pathlib import Path

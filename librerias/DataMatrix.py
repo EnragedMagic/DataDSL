@@ -1,4 +1,4 @@
-# Algebra lineal propia de DataDSL.
+# Realiza calculos con matrices y listas numericas.
 
 
 def _matriz(datos):

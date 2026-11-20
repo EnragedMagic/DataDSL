@@ -1,4 +1,4 @@
-# Estadistica propia de DataDSL.
+# Calcula medidas estadisticas y resumentes de tablas.
 
 from librerias.DataMath import raiz
 from librerias.DataTable import TablaDatos

@@ -1,4 +1,4 @@
-# Consola sencilla de DataDSL.
+# Permite escribir y ejecutar instrucciones desde consola.
 
 from antlr4 import InputStream, CommonTokenStream
 

@@ -1,4 +1,4 @@
-# Visitor principal de DataDSL.
+# Recorre el arbol sintactico y llama a las funciones que ejecutan cada instruccion.
 
 import json
 

@@ -1,4 +1,4 @@
-# Aleatorios propios de DataDSL.
+# Genera numeros pseudoaleatorios para el lenguaje.
 
 _estado = 123456789
 

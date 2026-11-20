@@ -1,4 +1,4 @@
-# Tabla tabular propia de DataDSL.
+# Guarda y transforma tablas; tambien lee CSV y XLSX.
 
 import csv
 import re

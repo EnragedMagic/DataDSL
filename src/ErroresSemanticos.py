@@ -1,4 +1,4 @@
-# Errores propios de DataDSL.
+# Reune errores de variables, tipos, archivos y operaciones invalidas.
 
 
 class ErrorDataDSL(Exception):

@@ -1,4 +1,4 @@
-# Matematicas propias de DataDSL.
+# Reune operaciones matematicas utilizadas por otras librerias.
 
 PI = 3.141592653589793
 E = 2.718281828459045

@@ -1,3 +1,4 @@
+// Aqui se definen las reglas y palabras que ANTLR reconoce en un archivo .dsl.
 grammar DataDSL;
 
 // Programa completo.

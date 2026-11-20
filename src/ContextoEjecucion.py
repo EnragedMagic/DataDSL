@@ -1,4 +1,4 @@
-# Tabla de simbolos de DataDSL.
+# Recuerda variables, tipos y funciones mientras corre el programa.
 
 from src.ErroresSemanticos import VariableNoDefinidaError
 

@@ -1,4 +1,4 @@
-# Reporta errores de sintaxis.
+# Muestra los problemas de sintaxis detectados por ANTLR.
 
 from antlr4.error.ErrorListener import ErrorListener
 

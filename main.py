@@ -1,4 +1,4 @@
-# Punto de entrada de DataDSL.
+# Lee el archivo .dsl y conecta Lexer, Parser y Visitor.
 
 import sys
 from pathlib import Path

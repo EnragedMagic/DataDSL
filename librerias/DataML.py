@@ -1,4 +1,4 @@
-# Machine Learning propio de DataDSL.
+# Implementa regresion, KNN, K-Means y MLP sin scikit-learn.
 
 from librerias.DataMath import exponencial, raiz
 from librerias.DataMatrix import transpuesta, multiplicar_matrices, inversa
