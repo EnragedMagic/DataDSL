@@ -102,13 +102,14 @@ def caja(tabla, columna, titulo="", ruta="salidas/caja.png"):
 def graficar_funcion(nombre, inicio, fin, paso=0.1, ruta="salidas/funcion.png", titulo=""):
     # Grafica una funcion matematica conocida.
     from librerias.DataML import sigmoide
-    from librerias.DataMath import seno, coseno, tangente
+    from librerias.DataMath import seno, coseno, tangente, funcion_tablero
 
     funciones = {
         "sigmoide": sigmoide,
         "seno": seno,
         "coseno": coseno,
         "tangente": tangente,
+        "funcion_tablero": funcion_tablero,
     }
     if nombre not in funciones:
         raise ValueError(f"Funcion no graficable: {nombre}")
