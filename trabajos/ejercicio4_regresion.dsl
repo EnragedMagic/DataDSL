@@ -1,7 +1,6 @@
-datos := abrir "Data.xlsx";
-limpios := datos
--> eliminar_nulos [edad, ingreso_mensual];
+matriz datos_x := [[1], [2], [3], [4], [5]];
+lista datos_y := [3, 5, 7, 9, 11];
 
-modelo := entrenar_regresion(limpios, ["edad"], "ingreso_mensual");
+modelo := regresion_lineal(datos_x, datos_y);
 imprimir modelo;
-graficar_regresion(limpios, modelo, "edad", "ingreso_mensual", "salidas/ejercicio4_regresion.png", "Regresion lineal");
+imprimir predecir_lineal(modelo, [[6]]);
