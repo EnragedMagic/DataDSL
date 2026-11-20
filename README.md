@@ -117,6 +117,10 @@ python3 main.py ejemplos/ml_kmeans.dsl
 
 Los archivos de `datos/` son ejemplos didácticos. Cada CSV tiene una nota de procedencia que DataDSL ignora al leer los datos.
 
+## Pruebas 2: ejercicios del tablero
+
+Los cinco ejercicios del tablero también están separados en [`pruebas2/`](pruebas2/README.md), con un archivo `.dsl` por punto y sus instrucciones de ejecución. El ejercicio de Excel necesita el archivo `Data.xlsx` del profesor en la raíz.
+
 ## Ejercicios del tablero
 
 DataDSL incluye ejemplos listos para los cinco ejercicios:
