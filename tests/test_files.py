@@ -1,4 +1,4 @@
-# Pruebas de archivos propios.
+# Comprueba operaciones de lectura y escritura de archivos.
 
 import tempfile
 import unittest

@@ -1,4 +1,4 @@
-# Pruebas del generador propio.
+# Comprueba el generador de numeros pseudoaleatorios.
 
 import unittest
 

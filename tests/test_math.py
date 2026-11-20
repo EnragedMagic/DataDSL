@@ -1,4 +1,4 @@
-# Pruebas de matematicas propias.
+# Comprueba resultados de las funciones matematicas.
 
 import unittest
 

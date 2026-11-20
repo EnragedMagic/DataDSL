@@ -1,4 +1,4 @@
-# Pruebas de independencia del proyecto.
+# Comprueba que el proyecto utiliza las dependencias previstas.
 
 import unittest
 from pathlib import Path

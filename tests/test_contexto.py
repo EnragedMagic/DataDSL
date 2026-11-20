@@ -1,4 +1,4 @@
-# Pruebas de tabla de simbolos.
+# Comprueba que las variables y los ambitos se recuerdan correctamente.
 
 import unittest
 

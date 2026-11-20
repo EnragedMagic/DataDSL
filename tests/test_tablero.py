@@ -1,4 +1,4 @@
-# Pruebas de los cinco puntos del tablero.
+# Comprueba los ejercicios del tablero, incluido el MLP para XOR.
 
 import tempfile
 import unittest

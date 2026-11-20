@@ -1,4 +1,4 @@
-# Pruebas de estadistica propia.
+# Comprueba funciones de estadistica descriptiva.
 
 import unittest
 

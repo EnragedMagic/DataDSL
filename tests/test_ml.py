@@ -1,4 +1,4 @@
-# Pruebas de Machine Learning propio.
+# Comprueba regresion, clasificacion, agrupamiento y metricas.
 
 import unittest
 

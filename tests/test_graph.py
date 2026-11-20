@@ -1,4 +1,4 @@
-# Pruebas de graficas PNG.
+# Comprueba que las funciones de graficas generan archivos PNG.
 
 import tempfile
 import unittest

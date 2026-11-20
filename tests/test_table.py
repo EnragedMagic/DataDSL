@@ -1,4 +1,4 @@
-# Pruebas de la tabla propia.
+# Comprueba la lectura y las operaciones sobre tablas.
 
 import tempfile
 import unittest

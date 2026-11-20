@@ -1,4 +1,4 @@
-# Pruebas de la gramatica fuente.
+# Comprueba que la gramatica acepta y rechaza programas esperados.
 
 import unittest
 from pathlib import Path

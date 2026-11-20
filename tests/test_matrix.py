@@ -1,4 +1,4 @@
-# Pruebas de matrices propias.
+# Comprueba calculos basicos con matrices.
 
 import unittest
 

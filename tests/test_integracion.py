@@ -1,4 +1,4 @@
-# Prueba de integracion completa.
+# Comprueba operaciones completas desde la entrada hasta los resultados.
 
 import tempfile
 import unittest

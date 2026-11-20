@@ -1,4 +1,4 @@
-# Pruebas del motor tabular.
+# Comprueba carga, filtros y transformaciones del motor.
 
 import unittest
 
