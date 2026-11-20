@@ -22,7 +22,7 @@ python3 main.py pruebas2/05_filtro_primos.dsl
 | 4 | Analiza un Excel por columna: tipo, registros, nulos, únicos, media, mínimo y máximo cuando corresponde. | `salidas/pruebas2_eda_excel.csv` |
 | 5 | Conserva solo los primos de los números de ejemplo. | `salidas/pruebas2_primos.csv` |
 
-**Punto 4:** debes colocar el archivo original `Data.xlsx` del profesor en la raíz del repositorio; no está incluido en GitHub. El análisis utiliza la primera hoja del archivo y depende de los encabezados y datos que contenga.
+**Punto 4:** se incluye `Data.xlsx` en la raíz con **datos ficticios de demostración** (edad, ciudad, nota). No es el archivo original del profesor. Si quieres evaluar los datos reales, reemplázalo por el Excel del profesor. El análisis utiliza la primera hoja.
 
 **Preparación:** si todavía no se han generado Lexer, Parser y Visitor, ejecuta `bash generar_antlr.sh`. También debes instalar las dependencias de `requirements.txt`.
 

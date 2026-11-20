@@ -119,7 +119,7 @@ Los archivos de `datos/` son ejemplos didácticos. Cada CSV tiene una nota de pr
 
 ## Pruebas 2: ejercicios del tablero
 
-Los cinco ejercicios del tablero también están separados en [`pruebas2/`](pruebas2/README.md), con un archivo `.dsl` por punto y sus instrucciones de ejecución. El ejercicio de Excel necesita el archivo `Data.xlsx` del profesor en la raíz.
+Los cinco ejercicios del tablero también están separados en [`pruebas2/`](pruebas2/README.md), con un archivo `.dsl` por punto y sus instrucciones de ejecución. El ejercicio de Excel utiliza el archivo `Data.xlsx` de ejemplo incluido en la raíz (datos ficticios, no el archivo original del profesor).
 
 ## Ejercicios del tablero
 
@@ -131,7 +131,7 @@ python3 main.py ejemplos/tablero_sigmoide.dsl
 python3 main.py ejemplos/tablero_xor.dsl
 ```
 
-Para el EDA de Excel, copia el archivo del profesor como `Data.xlsx` en la raíz y ejecuta:
+Para el EDA de Excel, se incluye `Data.xlsx` de demostración en la raíz. Ejecuta:
 
 ```bash
 python3 main.py ejemplos/tablero_excel.dsl
