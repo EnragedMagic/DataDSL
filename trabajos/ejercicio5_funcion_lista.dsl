@@ -1,12 +1,12 @@
-funcion es_primo_dsl(numero) {
-    si (numero < 2) {
+funcion es_primo_dsl(valor) {
+    si (valor < 2) {
         retornar falso;
     }
 
     numero divisor := 2;
 
-    mientras (divisor * divisor <= numero) {
-        si (numero % divisor == 0) {
+    mientras (divisor * divisor <= valor) {
+        si (valor % divisor == 0) {
             retornar falso;
         }
         divisor := divisor + 1;
