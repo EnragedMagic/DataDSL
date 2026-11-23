@@ -26,6 +26,24 @@ class _RetornoSignal(Exception):
         self.valor = valor
 
 
+class _ReferenciaFuncion:
+    def __init__(self, nombre):
+        self.nombre = nombre
+
+
+def _rango(inicio, fin):
+    inicio = int(inicio)
+    fin = int(fin)
+    paso = 1 if fin >= inicio else -1
+    return list(range(inicio, fin + paso, paso))
+
+
+def _agregar(lista, valor):
+    if not isinstance(lista, list):
+        raise TypeError("agregar requiere una lista.")
+    return list(lista) + [valor]
+
+
 class DataDSLVisitorImpl(DataDSLVisitor):
     def __init__(self):
         super().__init__()
@@ -52,6 +70,9 @@ class DataDSLVisitorImpl(DataDSLVisitor):
             "columnas": MotorDatos.nombres_columnas,
             "matriz_columnas": MotorDatos.matriz_columnas,
             "longitud": len,
+            "abrir_archivo": MotorDatos.abrir_csv,
+            "rango": _rango,
+            "agregar": _agregar,
         })
 
         # Agrega constantes comunes.
@@ -322,12 +343,19 @@ class DataDSLVisitorImpl(DataDSLVisitor):
         return resultado
 
     def visitLlamada(self, ctx):
-        # Ejecuta una funcion.
         nombre = ctx.ID().getText()
         argumentos = []
         if ctx.argumentos():
             argumentos = [self.visit(exp) for exp in ctx.argumentos().expr()]
 
+        if self.contexto.existe(nombre):
+            referencia = self.contexto.obtener(nombre)
+            if isinstance(referencia, _ReferenciaFuncion):
+                return self._invocar_funcion(referencia.nombre, argumentos)
+
+        return self._invocar_funcion(nombre, argumentos)
+
+    def _invocar_funcion(self, nombre, argumentos):
         if nombre in self.builtins:
             try:
                 return self.builtins[nombre](*argumentos)
@@ -465,10 +493,13 @@ class DataDSLVisitorImpl(DataDSLVisitor):
         return [self.visit(exp) for exp in ctx.expr()]
 
     def _resolver_identificador(self, nombre):
-        # Prioriza columnas en una fila.
         if self._fila_actual is not None and nombre in self._fila_actual:
             return self._fila_actual[nombre]
-        return self.contexto.obtener(nombre)
+        if self.contexto.existe(nombre):
+            return self.contexto.obtener(nombre)
+        if nombre in self.builtins or self.contexto.obtener_funcion(nombre):
+            return _ReferenciaFuncion(nombre)
+        raise VariableNoDefinidaError(nombre)
 
     @staticmethod
     def _string(texto):
