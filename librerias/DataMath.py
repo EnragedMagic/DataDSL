@@ -127,12 +127,6 @@ def es_primo(n):
     return True
 
 
-def funcion_tablero(x):
-    x = float(x)
-    if abs(x) < 1e-9:
-        return float("nan")
-    return 1.0 / (1.0 - exponencial(x))
-
 
 FUNCTIONS = {
     "raiz": raiz,
@@ -144,6 +138,5 @@ FUNCTIONS = {
     "coseno": coseno,
     "tangente": tangente,
     "es_primo": es_primo,
-    "funcion_tablero": funcion_tablero,
     "abs": abs,
 }
