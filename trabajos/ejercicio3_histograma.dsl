@@ -1,5 +1,5 @@
-datos := abrir "Data.xlsx";
-limpios := datos
--> eliminar_nulos [edad];
+texto archivo := "Data.xlsx";
+texto columna := "edad";
 
-graficar histograma de limpios eje_x edad titulo "Histograma de edad" como "salidas/ejercicio3_histograma.png";
+datos := abrir_archivo(archivo);
+grafica_histograma(datos, columna, "Histograma", "salidas/ejercicio3_histograma.png");
