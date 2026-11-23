@@ -102,14 +102,13 @@ def caja(tabla, columna, titulo="", ruta="salidas/caja.png"):
 def graficar_funcion(nombre, inicio, fin, paso=0.1, ruta="salidas/funcion.png", titulo=""):
     # Grafica una funcion matematica conocida.
     from librerias.DataML import sigmoide
-    from librerias.DataMath import seno, coseno, tangente, funcion_tablero
+    from librerias.DataMath import seno, coseno, tangente
 
     funciones = {
         "sigmoide": sigmoide,
         "seno": seno,
         "coseno": coseno,
         "tangente": tangente,
-        "funcion_tablero": funcion_tablero,
     }
     if nombre not in funciones:
         raise ValueError(f"Funcion no graficable: {nombre}")
@@ -136,6 +135,22 @@ def graficar_funcion(nombre, inicio, fin, paso=0.1, ruta="salidas/funcion.png", 
     ax.set_xlabel("x")
     ax.set_ylabel(nombre)
     ax.set_title(titulo or nombre)
+    fig.tight_layout()
+    fig.savefig(ruta, dpi=140)
+    plt.close(fig)
+    return str(ruta)
+
+
+def grafica_xy(valores_x, valores_y, titulo="", ruta="salidas/funcion.png"):
+    if len(valores_x) != len(valores_y):
+        raise ValueError("X e Y deben tener la misma cantidad de valores.")
+    ruta = Path(str(ruta))
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(valores_x, valores_y)
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_title(str(titulo))
     fig.tight_layout()
     fig.savefig(ruta, dpi=140)
     plt.close(fig)
@@ -245,6 +260,7 @@ def graficar_kmeans(tabla, modelo, x, y, ruta="salidas/ml_kmeans.png", titulo="K
 
 
 FUNCTIONS = {
+    "grafica_xy": grafica_xy,
     "graficar_regresion": graficar_regresion,
     "graficar_knn": graficar_knn,
     "graficar_kmeans": graficar_kmeans,
