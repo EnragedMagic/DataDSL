@@ -7,10 +7,14 @@ lista valores_y := [];
 decimal actual := -5;
 
 mientras (actual <= 5) {
+    valores_x := agregar(valores_x, actual);
+
     si (abs(actual) > 0.0001) {
-        valores_x := agregar(valores_x, actual);
         valores_y := agregar(valores_y, uno_sobre(actual));
+    } sino {
+        valores_y := agregar(valores_y, indefinido());
     }
+
     actual := actual + 0.1;
 }
 
