@@ -73,6 +73,7 @@ class DataDSLVisitorImpl(DataDSLVisitor):
             "abrir_archivo": MotorDatos.abrir_csv,
             "rango": _rango,
             "agregar": _agregar,
+            "indefinido": lambda: float("nan"),
         })
 
         # Agrega constantes comunes.
