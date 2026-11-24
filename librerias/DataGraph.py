@@ -148,6 +148,8 @@ def grafica_xy(valores_x, valores_y, titulo="", ruta="salidas/funcion.png"):
     ruta.parent.mkdir(parents=True, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(valores_x, valores_y)
+    ax.axhline(0, color="black", linewidth=1)
+    ax.axvline(0, color="black", linewidth=1)
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.set_title(str(titulo))
